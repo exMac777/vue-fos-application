@@ -40,7 +40,10 @@ const filterMenu = (keyword) => {
         return {
           ...secCat,
           Menus: secCat.Menus.filter((menu) => {
-            return menu.name.toLowerCase().includes(keyword.toLowerCase());
+            if (menu.name.toLowerCase().includes(keyword.toLowerCase())) {
+              toggleArray.value.push(secCat.id);
+              return true;
+            }
           }),
         };
       }),
