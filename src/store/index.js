@@ -13,9 +13,10 @@ const store = createStore({
   actions: {
     async getPrimaryMenu({ commit }) {
       try {
-        const { data } = await axios.get('../server/response.json');
-        console.log(data);
-        commit('setPrimaryMenu', data);
+        const response = await axios('src/server/response.json');
+        console.log(response);
+        // debugger;
+        commit('setPrimaryMenu', response.data);
       } catch (error) {
         console.error('An error occurred ', error);
       }
