@@ -14,7 +14,7 @@ const store = createStore({
     async getPrimaryMenu({ commit }) {
       try {
         const response = await axios('src/server/response.json');
-        console.log(response);
+        // console.log(response);
         // debugger;
         commit('setPrimaryMenu', response.data);
       } catch (error) {
