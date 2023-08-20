@@ -110,7 +110,7 @@ const hasAtLeastOneMatchingMenu = (array) => {
           coffee: primCats.name.toLowerCase() === 'coffee',
         }"
       >
-        <h2 class="font-bold text-3xl">
+        <h2 class="font-bold text-3xl text-[#f00]">
           {{ primCats.name }}
         </h2>
 
