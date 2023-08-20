@@ -32,7 +32,8 @@ const displayedCategories = computed(() => {
 
 const filteredCategories = ref([]);
 
-const filterMenu = (keyword) => {
+const filterMenu = () => {
+  toggleArray.value = [];
   filteredCategories.value = primaryCategories.value.map((primCat) => {
     return {
       ...primCat,
@@ -40,7 +41,7 @@ const filterMenu = (keyword) => {
         return {
           ...secCat,
           Menus: secCat.Menus.filter((menu) => {
-            if (menu.name.toLowerCase().includes(keyword.toLowerCase())) {
+            if (menu.name.toLowerCase().includes(keyword.value.toLowerCase())) {
               toggleArray.value.push(secCat.id);
               return true;
             }
@@ -49,6 +50,35 @@ const filterMenu = (keyword) => {
       }),
     };
   });
+};
+
+const hasMatchingMenus = (primCat) => {
+  return primCat.MenuCategories.some((secCat) => {
+    return secCat.Menus.some((menu) => {
+      return menu.name.toLowerCase().includes(keyword.value.toLowerCase());
+    });
+  });
+};
+const hasMatchingMenusSec = (secCat) => {
+  return secCat.Menus.some((menu) => {
+    return menu.name.toLowerCase().includes(keyword.value.toLowerCase());
+  });
+};
+
+const menuMatches = (menu) => {
+  return menu.name.toLowerCase().includes(keyword.value.toLowerCase());
+};
+
+const hasAtLeastOneMatchingMenu = (array) => {
+  let flag = false;
+  array.forEach((item) => {
+    item.MenuCategories.forEach((menu) => {
+      if (menu.Menus.length > 0) {
+        flag = true;
+      }
+    });
+  });
+  return flag;
 };
 </script>
 
@@ -61,64 +91,73 @@ const filterMenu = (keyword) => {
       class="w-full px-3"
       placeholder="Type to filter"
       v-model="keyword"
-      @input="filterMenu(keyword)"
+      @input="filterMenu()"
     />
   </div>
-  <div class="primary-categories-container">
-    <div
-      v-for="primCats in displayedCategories"
-      class="p-4"
-      :class="{
-        beverages: primCats.name.toLowerCase() === 'beverages',
-        food: primCats.name.toLowerCase() === 'food',
-        'soft-drinks': primCats.name.toLowerCase() === 'soft drinks',
-        cigarette: primCats.name.toLowerCase() === 'cigratte',
-        coffee: primCats.name.toLowerCase() === 'coffee',
-      }"
-    >
-      <h2 class="font-bold text-3xl text-[#f00]">{{ primCats.name }}</h2>
-      <div class="menu-categories-container">
-        <div v-if="primCats.MenuCategories.length < 1">
-          <h3 class="font-semibold text-2xl text-black ml-5">
-            No items to show
-          </h3>
-        </div>
-        <div v-else class="ml-5" v-for="menCats in primCats.MenuCategories">
-          <div
-            class="bg-slate-200 hover:bg-slate-300 duration-300 cursor-pointer header-wrapper flex justify-between items-center p-4 mt-4 mb-2 rounded-sm shadow-md"
-            @click="toggleMenuView(menCats.id)"
-          >
-            <h3 class="font-semibold text-2xl">{{ menCats.name }}</h3>
-            <span class="material-symbols-outlined"> expand_more </span>
-          </div>
-          <div class="ml-5" v-if="toggleArray.includes(menCats.id)">
-            <div v-if="!menCats.Menus.length > 0">
-              <h2 class="text-lg font-semibold my-4">No menus to display</h2>
-            </div>
-            <div v-else class="menu-cards my-7">
+  <div
+    v-if="hasAtLeastOneMatchingMenu(displayedCategories)"
+    class="primary-categories-container"
+  >
+    <template v-for="primCats in displayedCategories">
+      <div
+        v-if="primCats.MenuCategories.length > 0 && hasMatchingMenus(primCats)"
+        :class="{
+          'p-4': primCats.MenuCategories.length > 0,
+          beverages: primCats.name.toLowerCase() === 'beverages',
+          food: primCats.name.toLowerCase() === 'food',
+          'soft-drinks': primCats.name.toLowerCase() === 'soft drinks',
+          cigarette: primCats.name.toLowerCase() === 'cigratte',
+          coffee: primCats.name.toLowerCase() === 'coffee',
+        }"
+      >
+        <h2 class="font-bold text-3xl">
+          {{ primCats.name }}
+        </h2>
+
+        <div class="menu-categories-container">
+          <div class="ml-5" v-for="menCats in primCats.MenuCategories">
+            <template
+              v-if="menCats.Menus.length > 0 && hasMatchingMenusSec(menCats)"
+            >
               <div
-                class="menus bg-slate-100 p-2 rounded shadow-md h-[100px] flex flex-col justify-between"
-                v-for="(menu, index) in menCats.Menus"
+                class="bg-slate-200 hover:bg-slate-300 duration-300 cursor-pointer header-wrapper flex justify-between items-center p-4 mt-4 mb-2 rounded-sm shadow-md"
+                @click="toggleMenuView(menCats.id)"
               >
-                <h3 class="text-md break-all text-slate-800 font-semibold">
-                  {{
-                    index +
-                    1 +
-                    '. ' +
-                    menu.name.charAt(0).toUpperCase() +
-                    menu.name.toLowerCase().slice(1)
-                  }}
-                </h3>
-                <h3 class="text-sm font-semibold text-blue-500">
-                  Rs. {{ menu.price }}
-                </h3>
+                <h3 class="font-semibold text-2xl">{{ menCats.name }}</h3>
+                <span class="material-symbols-outlined"> expand_more </span>
               </div>
-            </div>
+              <div class="ml-5" v-if="toggleArray.includes(menCats.id)">
+                <div class="menu-cards my-7">
+                  <template v-for="menu in menCats.Menus">
+                    <div
+                      v-if="menuMatches(menu)"
+                      class="menus bg-slate-100 p-2 rounded shadow-md h-[100px] flex flex-col justify-between"
+                    >
+                      <h3
+                        class="text-md break-all text-slate-800 font-semibold"
+                      >
+                        {{
+                          menu.name.charAt(0).toUpperCase() +
+                          menu.name.toLowerCase().slice(1)
+                        }}
+                      </h3>
+                      <h3 class="text-sm font-semibold text-blue-500">
+                        Rs. {{ menu.price }}
+                      </h3>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
-      <!-- <pre>{{ primCats }}</pre> -->
-    </div>
+    </template>
+  </div>
+  <div v-else>
+    <h2 class="my-10 text-xl font-medium text-red-400 text-center">
+      No items found
+    </h2>
   </div>
 </template>
 
